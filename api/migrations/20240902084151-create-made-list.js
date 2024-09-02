@@ -6,33 +6,32 @@ module.exports = {
       id: {
         type: Sequelize.INTEGER,
         autoIncrement: true,
-        primaryKey: true,
-        allowNull: false
+        primaryKey: true
+      },
+      todoListId: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'TodoLists',
+          key: 'id'
+        }
       },
       title: {
         type: Sequelize.STRING,
         allowNull: false
       },
       description: {
-        type: Sequelize.TEXT,
-        allowNull: true
-      },
-      todoListId: {
-        type: Sequelize.INTEGER,
-        references: {
-          model: 'TodoLists',
-          key: 'id'
-        },
-        onDelete: 'CASCADE', // TodoList silindiğinde ilgili MadeList'ler de silinsin
-        allowNull: false
+        type: Sequelize.STRING
       },
       createdAt: {
         type: Sequelize.DATE,
-        allowNull: false
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       },
       updatedAt: {
         type: Sequelize.DATE,
-        allowNull: false
+        allowNull: false,
+        defaultValue: Sequelize.literal('CURRENT_TIMESTAMP')
       }
     });
   },

@@ -1,39 +1,38 @@
-"use strict";
-const { Model } = require("sequelize");
+'use strict';
+
 module.exports = (sequelize, DataTypes) => {
-  class User extends Model {
-    static associate(models) {
-      // Bir User birden fazla TodoList'e sahip olabilir
-      this.hasMany(models.TodoList, {
-        foreignKey: "userId",
-        as: "todoLists",
-      });
-    }
-  }
-  User.init(
-    {
-      name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      surname: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      email: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        unique: true,
-      },
-      password: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
+  const User = sequelize.define('User', {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true
     },
-    {
-      sequelize,
-      modelName: "User",
+    name: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    surname: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    email: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      unique: true
+    },
+    password: {
+      type: DataTypes.STRING,
+      allowNull: false
     }
-  );
+  });
+
+  User.associate = function(models) {
+    // User has many TodoLists
+    User.hasMany(models.TodoList, {
+      foreignKey: 'userId',
+      as: 'todoLists'
+    });
+  };
+
   return User;
 };

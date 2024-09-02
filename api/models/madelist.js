@@ -1,34 +1,36 @@
-"use strict";
-const { Model } = require("sequelize");
+'use strict';
+
 module.exports = (sequelize, DataTypes) => {
-  class MadeList extends Model {
-    static associate(models) {
-      // Bir MadeList bir TodoList'e ait olabilir
-      this.belongsTo(models.TodoList, {
-        foreignKey: "todoListId",
-        as: "todoList",
-      });
-    }
-  }
-  MadeList.init(
-    {
-      title: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      description: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-      },
-      todoListId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
+  const MadeList = sequelize.define('MadeList', {
+    id: {
+      type: DataTypes.INTEGER,
+      autoIncrement: true,
+      primaryKey: true
     },
-    {
-      sequelize,
-      modelName: "MadeList",
+    todoListId: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'TodoLists',
+        key: 'id'
+      }
+    },
+    title: {
+      type: DataTypes.STRING,
+      allowNull: false
+    },
+    description: {
+      type: DataTypes.STRING
     }
-  );
+  });
+
+  MadeList.associate = function(models) {
+    // MadeList belongs to TodoList
+    MadeList.belongsTo(models.TodoList, {
+      foreignKey: 'todoListId',
+      as: 'todoList'
+    });
+  };
+
   return MadeList;
 };
