@@ -1,44 +1,32 @@
-'use strict';
-
+"use strict";
 module.exports = (sequelize, DataTypes) => {
-  const TodoList = sequelize.define('TodoList', {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true
+  const TodoList = sequelize.define("TodoList", {
+    title: {
+      type: DataTypes.STRING,
+      allowNull: false,
+    },
+    isItDone: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    description: {
+      type: DataTypes.STRING,
     },
     userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       references: {
-        model: 'Users',
-        key: 'id'
-      }
+        model: "Users",
+        key: "id",
+      },
     },
-    title: {
-      type: DataTypes.STRING,
-      allowNull: false
-    },
-    description: {
-      type: DataTypes.STRING
-    },
-    isItDone: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false
-    }
   });
 
-  TodoList.associate = function(models) {
-    // TodoList belongs to User
+  TodoList.associate = function (models) {
+    // TodoList belongs to a User
     TodoList.belongsTo(models.User, {
-      foreignKey: 'userId',
-      as: 'user'
-    });
-
-    // TodoList has many MadeLists
-    TodoList.hasMany(models.MadeList, {
-      foreignKey: 'todoListId',
-      as: 'madeLists'
+      foreignKey: "userId",
+      as: "user",
     });
   };
 

@@ -6,16 +6,7 @@ module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define(
     "User",
     {
-      id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
       name: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
-      surname: {
         type: DataTypes.STRING,
         allowNull: false,
       },
@@ -31,16 +22,10 @@ module.exports = (sequelize, DataTypes) => {
     },
     {
       hooks: {
-        beforeCreate: async (User) => {
-          if (User.password) {
+        beforeCreate: async (user) => {
+          if (user.password) {
             const salt = await bcrypt.genSalt(10);
-            User.password = await bcrypt.hash(User.password, salt);
-          }
-        },
-        beforeUpdate: async (User) => {
-          if (User.password) {
-            const salt = await bcrypt.genSalt(10);
-            User.password = await bcrypt.hash(User.password, salt);
+            user.password = await bcrypt.hash(user.password, salt);
           }
         },
       },
