@@ -1,29 +1,48 @@
 require("dotenv").config();
 const express = require("express");
-const { TodoList, User, MadeList } = require("../models");
+const { TodoList, User } = require("../models");
 const { where } = require("sequelize");
 
 exports.getTodoList = async (req, res) => {
   try {
-    const todoList = await TodoList.findAll();
+    const todoList = await TodoList.findAll({
+      where: { userId: req.userId },
+    });
 
     return res.status(200).json({ todoList });
-  } catch (error) {}
+  } catch (error) {
+    res.status(500).json({ error: "Unable to retrieve todo lists" });
+  }
+};
+
+exports.getCompletedTodoList = async (req, res) => {
+  try {
+    const userId = req.userId;
+
+    const completedTodos = await TodoList.findAll({
+      where: {
+        userId,
+        isItDone: true,
+      },
+    });
+
+    if (completedTodos.length === 0) {
+      return res.status(404).json({
+        message: "No completed todos found",
+      });
+    }
+
+    res.status(200).json(completedTodos);
+  } catch (error) {
+    res.status(500).json({ error: "Internal server error" });
+    console.log(error);
+  }
 };
 
 exports.createTodoList = async (req, res) => {
   try {
-    const { userId, title, description, isItDone } = req.body;
-
-    const user = await User.findOne({ where: { id: userId } });
-
-    if (!user) {
-      return res.status(400).json({
-        Error: {
-          Message: "userId cannot be empty ",
-        },
-      });
-    }
+    const userId = req.userId;
+    const { title, description, isItDone } = req.body;
 
     if (!title) {
       return res.status(400).json({
@@ -49,60 +68,56 @@ exports.createTodoList = async (req, res) => {
 
 exports.updateTodoList = async (req, res) => {
   try {
-    const { id, title, description, isItDone } = req.body;
+    const todoId = req.params.id;
+    const { title, description, isItDone } = req.body;
+    const todo = await TodoList.findByPk(todoId);
 
-    const isMatch = await TodoList.findOne({ where: { id } });
-
-    if (!isMatch) {
-      return res.status(400).json({
-        Error: {
-          Message: "id not found",
-        },
-      });
-    }
-    
-    const updateTodo = await TodoList.update(
-      {
-        title,
-        description,
-        isItDone,
-      },
-      { where: { id } }
-    );
-
-    if (updateTodo[0] === 0) {
-      return res.status(400).json({
-        Error: {
-          Message: "No records updated",
-        },
-      });
+    if (!todo) {
+      return res.status(404).json({ error: "Cannot find todo" });
     }
 
-    res.status(201).json({ message: "update succesfuly", updateTodo });
+    if (todo.userId !== req.userId) {
+      return res.status(403).json({ error: "You have no authorization" });
+    }
+
+    todo.title = title || todo.title;
+    todo.description = description || todo.description;
+    todo.isItDone = isItDone || todo.isItDone;
+
+    await todo.save();
+    return res.status(200).json(todo);
   } catch (error) {
-    res.status(500).json({ error: "Internal Server Error" });
+    res.status(500).json({ error: "Cannot updated todo" });
     console.log(error);
   }
 };
 
 exports.deleteTodoList = async (req, res) => {
   try {
-    const id = req.params.id;
+    const todoId = req.params.id;
 
-    const isMatch = await TodoList.findOne({ id });
+    const todo = await TodoList.findByPk(todoId);
 
-    if (!isMatch) {
+    if (!todo) {
       return res.status(400).json({
         Error: {
-          Message: "id not found",
+          Message: "todo not found",
         },
       });
     }
 
-    await TodoList.destroy({ where: { id } });
+    if (todo.userId !== req.userId) {
+      return res.status(403).json({
+        Error: {
+          Message: "You do not permission to delete this todo",
+        },
+      });
+    }
+
+    await TodoList.destroy({ where: { id: todoId } });
     res
       .status(200)
-      .json({ message: `Item with id ${id} deleted successfully` });
+      .json({ message: `Item with id ${todoId} deleted successfully` });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
     console.log(error);

@@ -6,14 +6,13 @@ const authMiddleware = (req, res, next) => {
 
   if (!token) return res.status(401).json({ message: "Login" });
 
-  jwt.verify(token, process.env.JWT_SECRET_KEY, (err, payload) => {
-    if (err) {
-      console.log(err);
-      return res.status(400).json(err);
-    }
-    req.tokenPayload = payload;
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    req.userId = decoded.id;
     next();
-  });
+  } catch (error) {
+    return res.status(401).send({ error: "Plesae Login!" });
+  }
 };
 
 module.exports = authMiddleware;
